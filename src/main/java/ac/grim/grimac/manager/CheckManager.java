@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
-import ac.grim.grimac.AbstractCheck;
+
+import ac.grim.grimac.api.AbstractCheck;
 import ac.grim.grimac.checks.impl.aim.AimDuplicateLook;
 import ac.grim.grimac.checks.impl.aim.AimModulo360;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
@@ -13,6 +14,7 @@ import ac.grim.grimac.checks.impl.exploit.ExploitB;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.FastBreak;
+import ac.grim.grimac.checks.impl.misc.GhostBlockMitigation;
 import ac.grim.grimac.checks.impl.misc.TransactionOrder;
 import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.post.PostCheck;
@@ -81,7 +83,10 @@ public class CheckManager {
                 .put(BadPacketsN.class, new BadPacketsN(player))
                 .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsQ.class, new BadPacketsQ(player))
-                .put(PostCheck.class, new PostCheck(player))
+                .put(BadPacketsR.class, new BadPacketsR(player))
+                .put(BadPacketsS.class, new BadPacketsS(player))
+                .put(BadPacketsT.class, new BadPacketsT(player))
+                .put(InvalidPlace.class, new InvalidPlace(player))
                 .put(FastBreak.class, new FastBreak(player))
                 .put(TransactionOrder.class, new TransactionOrder(player))
                 .put(NoSlowB.class, new NoSlowB(player))
@@ -107,6 +112,7 @@ public class CheckManager {
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(GhostBlockDetector.class, new GhostBlockDetector(player))
                 .put(Phase.class, new Phase(player))
+                .put(PostCheck.class, new PostCheck(player))
                 .put(NoFallB.class, new NoFallB(player))
                 .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(SuperDebug.class, new SuperDebug(player))
@@ -126,6 +132,7 @@ public class CheckManager {
                 .put(PositionPlace.class, new PositionPlace(player))
                 .put(RotationPlace.class, new RotationPlace(player))
                 .put(DuplicateRotPlace.class, new DuplicateRotPlace(player))
+                .put(GhostBlockMitigation.class, new GhostBlockMitigation(player))
                 .build();
 
         prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -136,6 +143,8 @@ public class CheckManager {
                 .put(CrashD.class, new CrashD(player))
                 .put(CrashE.class, new CrashE(player))
                 .put(CrashF.class, new CrashF(player))
+                .put(CrashG.class, new CrashG(player))
+                .put(CrashH.class, new CrashH(player))
                 .put(ExploitA.class, new ExploitA(player))
                 .put(ExploitB.class, new ExploitB(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
@@ -247,12 +256,22 @@ public class CheckManager {
         return (T) prePredictionChecks.get(check);
     }
 
+    private PacketEntityReplication packetEntityReplication = null;
+
     public PacketEntityReplication getEntityReplication() {
-        return getPacketCheck(PacketEntityReplication.class);
+        if (packetEntityReplication == null) packetEntityReplication = getPacketCheck(PacketEntityReplication.class);
+        return packetEntityReplication;
     }
 
     public NoFallA getNoFall() {
         return getPacketCheck(NoFallA.class);
+    }
+
+    private CompensatedInventory inventory = null;
+
+    public CompensatedInventory getInventory() {
+        if (inventory == null) inventory = getPacketCheck(CompensatedInventory.class);
+        return inventory;
     }
 
     public KnockbackHandler getKnockbackHandler() {

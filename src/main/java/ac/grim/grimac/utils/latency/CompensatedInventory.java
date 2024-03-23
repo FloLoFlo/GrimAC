@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -8,7 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.inventory.EquipmentType;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
-import ac.grim.grimac.utils.inventory.inventory.MenuTypes;
+import ac.grim.grimac.utils.inventory.inventory.MenuType;
 import ac.grim.grimac.utils.inventory.inventory.NotImplementedMenu;
 import ac.grim.grimac.utils.lists.CorrectingPlayerInventoryStorage;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -343,11 +342,13 @@ public class CompensatedInventory extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
             WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
+            MenuType menuType = MenuType.getMenuType(open.getType());
+
             AbstractContainerMenu newMenu;
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
-                newMenu = MenuTypes.getMenuFromID(player, inventory, open.getType());
+                newMenu = MenuType.getMenuFromID(player, inventory, menuType);
             } else {
-                newMenu = MenuTypes.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
+                newMenu = MenuType.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
             }
 
             packetSendingInventorySize = newMenu instanceof NotImplementedMenu ? UNSUPPORTED_INVENTORY_CASE : newMenu.getSlots().size();
@@ -456,8 +457,11 @@ public class CompensatedInventory extends Check implements PacketCheck {
                     if (inventory.getInventoryStorage().getSize() > slot.getSlot() && slot.getSlot() >= 0) {
                         inventory.getInventoryStorage().setItem(slot.getSlot(), slot.getItem());
                     }
-                } else if (slot.getWindowId() == 0) { // Player hotbar (ONLY!)
-                    if (slot.getSlot() >= 36 && slot.getSlot() <= 45) {
+                } else if (slot.getWindowId() == 0) { // Player inventory
+                    // This packet can only be used to edit the hotbar and offhand of the player's inventory if
+                    // window ID is set to 0 (slots 36 through 45) if the player is in creative, with their inventory open,
+                    // and not in their survival inventory tab. Otherwise, when window ID is 0, it can edit any slot in the player's inventory.
+                    if (slot.getSlot() >= 0 && slot.getSlot() <= 45) {
                         inventory.getSlot(slot.getSlot()).set(slot.getItem());
                     }
                 } else if (slot.getWindowId() == openWindowID) { // Opened inventory (if not valid, client crashes)

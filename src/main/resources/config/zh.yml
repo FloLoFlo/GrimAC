@@ -113,6 +113,10 @@ TimerA:
   # 玩家卡顿时可以累积以供以后使用的毫秒数
   # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
   drift: 120
+  # Ping at which the check will start to limit timer balance, to prevent abuse.
+  # Can cause some setbacks for legitimate players but only if they are over this ping threshold.
+  # -1 to disable
+  ping-abuse-limit-threshold: 1000
 
 NegativeTimer:
   # Number of milliseconds lost while moving before we should start flagging
@@ -146,6 +150,9 @@ Reach:
 
 exploit:
   allow-sprint-jumping-when-using-elytra: true
+  # 该选项可在发生鬼块时重新同步玩家，从而减轻玩家在鬼块上的位置。
+  allow-building-on-ghostblocks: true
+  distance-to-check-if-ghostblocks: 2
 
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false
@@ -156,5 +163,8 @@ experimental-checks: false
 # Grim有时会取消非法的数据包，比如用timer，在一秒钟内取消了数个数据包后，我们应该踢掉这个玩家？
 # 我们认为是应该的，因为有些数据包限制器并不计算被Grim取消的数据包。
 packet-spam-threshold: 100
+
+# Grim 能够强制执行一个规则：被设置为非飞行状态的玩家的 ping 值不能超过 X 毫秒。这是因为 Grim 目前不检查处于飞行状态的玩家。
+max-ping-out-of-flying: 1000
 
 config-version: 9

@@ -263,21 +263,24 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF);
+                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF, false);
 
                             // Works on both legacy and modern!  Faster than checking for material types, most common case
                             if (data.getGlobalId() == 0) continue;
+
                             // Thanks SpottedLeaf for this optimization, I took edgeCount from Tuinity
                             int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
                                     ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
                                     ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
 
-                            if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(data.getType()))
-                                    && (edgeCount != 2 || data.getType() == StateTypes.PISTON_HEAD)) {
+                            final StateType type = data.getType();
+                            if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(type))
+                                    && (edgeCount != 2 || type == StateTypes.PISTON_HEAD)) {
+                                final CollisionBox collisionBox = CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
                                 // Don't add to a list if we only care if the player intersects with the block
                                 if (!onlyCheckCollide) {
-                                    CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
-                                } else if (CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isCollided(wantedBB)) {
+                                    collisionBox.downCast(listOfBlocks);
+                                } else if (collisionBox.isCollided(wantedBB)) {
                                     return true;
                                 }
                             }
@@ -658,6 +661,11 @@ public class Collisions {
     public static boolean onClimbable(GrimPlayer player, double x, double y, double z) {
         WrappedBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
         StateType blockMaterial = blockState.getType();
+
+        // ViaVersion replacement block -> glow berry vines (cave vines) -> fern
+        if (blockMaterial == StateTypes.CAVE_VINES || blockMaterial == StateTypes.CAVE_VINES_PLANT) {
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17);
+        }
 
         if (BlockTags.CLIMBABLE.contains(blockMaterial)) {
             return true;
