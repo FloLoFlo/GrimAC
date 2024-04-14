@@ -83,7 +83,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-  # A partir de la version 2.2.10, il n'y a plus de vérifications pour AutoClicker et c'est un placeholder. Grim inclura des vérifications AutoClicker dans le futur. 
+  # A partir de la version 2.2.10, il n'y a plus de vérifications pour AutoClicker et c'est un placeholder. SAC inclura des vérifications AutoClicker dans le futur.
   Autoclicker:
     remove-violations-after: 300
     checks:

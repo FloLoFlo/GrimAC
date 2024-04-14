@@ -10,7 +10,7 @@ import co.aikar.commands.annotation.Subcommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-@CommandAlias("grim|grimac")
+@CommandAlias("grim|grimac|sac")
 public class GrimStopSpectating extends BaseCommand {
     @Subcommand("stopspectating")
     @CommandPermission("grim.spectate")

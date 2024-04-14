@@ -16,7 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-@CommandAlias("grim|grimac")
+@CommandAlias("grim|grimac|sac")
 public class GrimLog extends BaseCommand {
     @Subcommand("log|logs")
     @CommandPermission("grim.log")

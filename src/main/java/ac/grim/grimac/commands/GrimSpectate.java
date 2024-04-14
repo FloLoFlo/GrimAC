@@ -17,7 +17,7 @@ import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-@CommandAlias("grim|grimac")
+@CommandAlias("grim|grimac|sac")
 public class GrimSpectate extends BaseCommand {
     @Subcommand("spectate")
     @CommandPermission("grim.spectate")
@@ -45,8 +45,8 @@ public class GrimSpectate extends BaseCommand {
                 grimPlayer.user.sendMessage(
                         LegacyComponentSerializer.legacy('&')
                                 .deserialize(MessageUtil.formatWithNoColor(message))
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/grim stopspectating"))
-                                .hoverEvent(HoverEvent.showText(Component.text("/grim stopspectating")))
+                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/sac stopspectating"))
+                                .hoverEvent(HoverEvent.showText(Component.text("/sac stopspectating")))
                 );
             }
         }
