@@ -8,14 +8,14 @@ import com.github.retrooper.packetevents.util.Vector3d;
 public class PacketStateData {
     public boolean packetPlayerOnGround = false;
     public boolean lastPacketWasTeleport = false;
-    public boolean lastPacketWasOnePointSeventeenDuplicate = false;
+    public boolean cancelDuplicatePacket, lastPacketWasOnePointSeventeenDuplicate = false;
     public boolean lastTransactionPacketWasValid = false;
     public int lastSlotSelected;
     public InteractionHand eatingHand = InteractionHand.MAIN_HAND;
     public long lastRiptide = 0;
     public boolean tryingToRiptide = false;
-    public boolean slowedByUsingItem = false;
-    public int slowedByUsingItemTransaction = Integer.MIN_VALUE;
+    public boolean slowedByUsingItem, wasSlowedByUsingItem = false;
+    public int slowedByUsingItemTransaction, slowedByUsingItemSlot = Integer.MIN_VALUE;
     public boolean receivedSteerVehicle = false;
     // This works on 1.8 only
     public boolean didLastLastMovementIncludePosition = false;

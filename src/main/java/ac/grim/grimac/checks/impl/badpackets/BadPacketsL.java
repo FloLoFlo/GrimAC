@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import java.util.Locale;
 
-//checks for impossible dig packets
+// checks for impossible dig packets
 @CheckData(name = "BadPacketsL")
 public class BadPacketsL extends Check implements PacketCheck {
 
@@ -26,10 +26,7 @@ public class BadPacketsL extends Check implements PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             final WrapperPlayClientPlayerDigging packet = new WrapperPlayClientPlayerDigging(event);
 
-            final boolean isUsedForDigging = packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING;
-            if (isUsedForDigging) {
-                return;
-            }
+            if (packet.getAction() == DiggingAction.START_DIGGING || packet.getAction() == DiggingAction.FINISHED_DIGGING || packet.getAction() == DiggingAction.CANCELLED_DIGGING) return;
 
             // 1.8 and above clients always send digging packets that aren't used for digging at 0, 0, 0, facing DOWN
             // 1.7 and below clients do the same, except use SOUTH for RELEASE_USE_ITEM
@@ -40,11 +37,16 @@ public class BadPacketsL extends Check implements PacketCheck {
                     || packet.getBlockPosition().getX() != 0
                     || packet.getBlockPosition().getY() != 0
                     || packet.getBlockPosition().getZ() != 0
+                    || packet.getSequence() != 0
             ) {
-                flagAndAlert("xyzF="
+                if (flagAndAlert("xyzF="
                         + packet.getBlockPosition().getX() + ", " + packet.getBlockPosition().getY() + ", " + packet.getBlockPosition().getZ() + ", " + packet.getBlockFace()
+                        + ", sequence=" + packet.getSequence()
                         + ", action=" + packet.getAction().toString().toLowerCase(Locale.ROOT).replace("_", " ") + " v" + player.getVersionName()
-                );
+                ) && shouldModifyPackets()) {
+                    event.setCancelled(true);
+                    player.onPacketCancel();
+                }
             }
         }
     }

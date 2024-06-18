@@ -18,7 +18,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-@CommandAlias("grim|grimac|sac")
+@CommandAlias("grim|grimac")
 public class GrimProfile extends BaseCommand {
     @Subcommand("profile")
     @CommandPermission("grim.profile")
@@ -29,7 +29,7 @@ public class GrimProfile extends BaseCommand {
 
         // Short circuit due to minimum java requirements for MultiLib
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLibUtil.isExternalPlayer(target.getPlayer())) {
-            String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cPlayer isn't on this server!");
+            String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
             sender.sendMessage(MessageUtil.format(alertString));
             return;
         }

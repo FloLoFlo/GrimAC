@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.*;
+import ac.grim.grimac.utils.data.packetentity.dragon.PacketEntityEnderDragon;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
@@ -63,6 +64,13 @@ public class CompensatedEntities {
         PacketEntity entity = entityMap.remove(entityID);
         if (entity == null) return;
 
+        if (entity instanceof PacketEntityEnderDragon) {
+            PacketEntityEnderDragon dragon = (PacketEntityEnderDragon) entity;
+            for (int i = 1; i < dragon.getParts().size() + 1; i++) {
+                entityMap.remove(entityID + i);
+            }
+        }
+
         for (PacketEntity passenger : new ArrayList<>(entity.passengers)) {
             passenger.eject();
         }
@@ -100,8 +108,8 @@ public class CompensatedEntities {
     public void updateAttributes(int entityID, List<WrapperPlayServerUpdateAttributes.Property> objects) {
         if (entityID == player.entityID) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
-                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-
+                final String key = snapshotWrapper.getKey();
+                if (key.toUpperCase().contains("MOVEMENT")) {
                     boolean found = false;
                     List<WrapperPlayServerUpdateAttributes.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
                     for (WrapperPlayServerUpdateAttributes.PropertyModifier modifier : modifiers) {
@@ -114,11 +122,46 @@ public class CompensatedEntities {
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
                     player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
+                    continue;
+                }
+
+                // Attribute limits defined by https://minecraft.wiki/w/Attribute
+                // These seem to be clamped on the client, but not the server
+                switch (key) {
+                    case "minecraft:player.block_break_speed":
+                        player.compensatedEntities.getSelf().setBreakSpeedMultiplier(GrimMath.clamp(snapshotWrapper.getValue(), 0, 1024));
+                        break;
+                    case "minecraft:player.block_interaction_range":
+                        player.compensatedEntities.getSelf().setBlockInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
+                        break;
+                    case "minecraft:player.entity_interaction_range":
+                        player.compensatedEntities.getSelf().setEntityInteractRange(GrimMath.clamp(snapshotWrapper.getValue(), 0, 64));
+                        break;
+                    case "minecraft:generic.jump_strength":
+                        player.compensatedEntities.getSelf().setJumpStrength(GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0, 32));
+                        break;
                 }
             }
         }
 
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_20_5)) {
+            for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
+                final String key = snapshotWrapper.getKey();
+                if (key.equals("minecraft:generic.gravity")) {
+                    entity.gravityAttribute = GrimMath.clamp(snapshotWrapper.getValue(), -1, 1);
+                } else if (key.equals("minecraft:generic.scale")) {
+                    // The game itself casts to float, this is fine.
+                    entity.scale = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0.0625f, 16f);
+                } else if (key.equals("minecraft:generic.step_height")) {
+                    entity.stepHeight = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0f, 10f);
+                } else if (entity instanceof PacketEntityHorse && key.equals("minecraft:generic.jump_strength")) {
+                    // TODO check if this is how horses determine jump strength now
+                    ((PacketEntityHorse) entity).jumpStrength = GrimMath.clampFloat((float) snapshotWrapper.getValue(), 0, 32);
+                }
+            }
+        }
 
         if (entity instanceof PacketEntityHorse) {
             for (WrapperPlayServerUpdateAttributes.Property snapshotWrapper : objects) {
@@ -202,6 +245,8 @@ public class CompensatedEntities {
                 packetEntity = new PacketEntityTrackXRot(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
             } else if (EntityTypes.FISHING_BOBBER.equals(entityType)) {
                 packetEntity = new PacketEntityHook(player, entityType, position.getX(), position.getY(), position.getZ(), data);
+            } else if (EntityTypes.ENDER_DRAGON.equals(entityType)) {
+                packetEntity = new PacketEntityEnderDragon(player, entityID, position.getX(), position.getY(), position.getZ());
             } else {
                 packetEntity = new PacketEntity(player, entityType, position.getX(), position.getY(), position.getZ());
             }
@@ -327,7 +372,7 @@ public class CompensatedEntities {
         if (entity instanceof PacketEntityRideable) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
-                if (entity.type == EntityTypes.PIG) {
+                if (entity.getType() == EntityTypes.PIG) {
                     EntityData pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 16);
                     if (pigSaddle != null) {
                         ((PacketEntityRideable) entity).hasSaddle = ((byte) pigSaddle.getValue()) != 0;
@@ -343,7 +388,7 @@ public class CompensatedEntities {
                 offset = 1;
             }
 
-            if (entity.type == EntityTypes.PIG) {
+            if (entity.getType() == EntityTypes.PIG) {
                 EntityData pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
                 if (pigSaddle != null) {
                     ((PacketEntityRideable) entity).hasSaddle = (boolean) pigSaddle.getValue();
@@ -429,7 +474,7 @@ public class CompensatedEntities {
             }
         }
 
-        if (entity.type == EntityTypes.FIREWORK_ROCKET) {
+        if (entity.getType() == EntityTypes.FIREWORK_ROCKET) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) {
                 offset = 2;

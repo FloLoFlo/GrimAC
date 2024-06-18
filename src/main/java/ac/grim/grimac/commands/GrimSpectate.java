@@ -9,15 +9,15 @@ import co.aikar.commands.annotation.*;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-@CommandAlias("grim|grimac|sac")
+@CommandAlias("grim|grimac")
 public class GrimSpectate extends BaseCommand {
     @Subcommand("spectate")
     @CommandPermission("grim.spectate")
@@ -33,7 +33,7 @@ public class GrimSpectate extends BaseCommand {
         }
 
         if (target == null || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18) && MultiLibUtil.isExternalPlayer(target.getPlayer()))) {
-            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cPlayer isn't on this server!");
+            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-this-server", "%prefix% &cThis player isn't on this server!");
             sender.sendMessage(MessageUtil.format(message));
             return;
         }
@@ -45,8 +45,8 @@ public class GrimSpectate extends BaseCommand {
                 grimPlayer.user.sendMessage(
                         LegacyComponentSerializer.legacy('&')
                                 .deserialize(MessageUtil.formatWithNoColor(message))
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/sac stopspectating"))
-                                .hoverEvent(HoverEvent.showText(Component.text("/sac stopspectating")))
+                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/grim stopspectating"))
+                                .hoverEvent(HoverEvent.showText(Component.text("/grim stopspectating")))
                 );
             }
         }
